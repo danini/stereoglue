@@ -59,7 +59,6 @@ PYBIND11_MODULE(pystereoglue, m) {
     // Expose the sampler types to Python
     py::enum_<stereoglue::samplers::SamplerType>(m, "SamplerType")
         .value("Uniform", stereoglue::samplers::SamplerType::Uniform)
-        .value("Exhaustive", stereoglue::samplers::SamplerType::Exhaustive)
         .export_values();
 
     // Expose the LO types to Python
@@ -78,9 +77,7 @@ PYBIND11_MODULE(pystereoglue, m) {
     py::class_<stereoglue::LocalOptimizationSettings>(m, "LocalOptimizationSettings")
         .def(py::init<>())
         .def_readwrite("max_iterations", &stereoglue::LocalOptimizationSettings::maxIterations)
-        .def_readwrite("graph_cut_number", &stereoglue::LocalOptimizationSettings::graphCutNumber)
-        .def_readwrite("sample_size_multiplier", &stereoglue::LocalOptimizationSettings::sampleSizeMultiplier)
-        .def_readwrite("spatial_coherence_weight", &stereoglue::LocalOptimizationSettings::spatialCoherenceWeight);
+        .def_readwrite("sample_size_multiplier", &stereoglue::LocalOptimizationSettings::sampleSizeMultiplier);
 
     // Expose the RANSAC settings to Python
     py::class_<stereoglue::RANSACSettings>(m, "RANSACSettings")
@@ -91,18 +88,14 @@ PYBIND11_MODULE(pystereoglue, m) {
         .def_readwrite("confidence", &stereoglue::RANSACSettings::confidence)
         .def_readwrite("scoring", &stereoglue::RANSACSettings::scoring)
         .def_readwrite("sampler", &stereoglue::RANSACSettings::sampler)
-        .def_readwrite("neighborhood", &stereoglue::RANSACSettings::neighborhood)
         .def_readwrite("core_number", &stereoglue::RANSACSettings::coreNumber)
         .def_readwrite("inlier_selector", &stereoglue::RANSACSettings::inlierSelector)
         .def_readwrite("local_optimization", &stereoglue::RANSACSettings::localOptimization)
         .def_readwrite("final_optimization", &stereoglue::RANSACSettings::finalOptimization)
         .def_readwrite("termination_criterion", &stereoglue::RANSACSettings::terminationCriterion)
-        .def_readwrite("ar_sampler_settings", &stereoglue::RANSACSettings::arSamplerSettings)
         .def_readwrite("local_optimization_settings", &stereoglue::RANSACSettings::localOptimizationSettings)
-        .def_readwrite("final_optimization_settings", &stereoglue::RANSACSettings::finalOptimizationSettings)
-        .def_readwrite("neighborhood_settings", &stereoglue::RANSACSettings::neighborhoodSettings);
+        .def_readwrite("final_optimization_settings", &stereoglue::RANSACSettings::finalOptimizationSettings);
         
-    
     // Expose the function to Python
     m.def("estimateHomography", &estimateHomographyGravity, "A function that performs homography estimation from point correspondences.",
         py::arg("lafs1"),

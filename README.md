@@ -10,6 +10,10 @@ git clone https://github.com/danini/stereoglue.git
 Make sure that you have the necessary libraries installed:
 ```
 sudo apt-get install libopencv-dev libopencv-contrib-dev libarpack++2-dev libarpack2-dev libsuperlu-dev libeigen3-dev libboost-all-dev pybind11
+```
+
+To run affine feature detection and matching with the built-in tools, install:
+```
 pip install kornia
 pip install kornia-moons
 ```

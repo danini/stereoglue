@@ -1,5 +1,22 @@
 # StereoGlue
 
+## Installation
+
+Clone the repository and its submodules:
+```
+git clone https://github.com/danini/stereoglue.git
+```
+
+Make sure that you have the necessary libraries installed:
+```
+sudo apt-get install libopencv-dev libopencv-contrib-dev libarpack++2-dev libarpack2-dev libsuperlu-dev libeigen3-dev libboost-all-dev pybind11
+```
+
+Install StereoGlue by running
+```
+pip install .
+```
+
 ## Evaluation - Essential Matrix Estimation
 To test StereoGlue and other baselines on essential matrix estimation, set up the datasets as described below. 
 To run the baselines, use:

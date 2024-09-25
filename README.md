@@ -70,7 +70,7 @@ When using the algorithm, please cite:
 ```
 @inproceedings{StereoGlue2024,
 	author = {Barath, Daniel and Mishkin, Dmytro and Cavalli, Luca and Sarlin, Paul-Edouard and Hruby, Petr and Pollefeys, Marc},
-	title = {StereoGlue: Robust Estimation with Single-Point Solvers},
+	title = {{StereoGlue}: Robust Estimation with Single-Point Solvers},
 	booktitle = {Proceedings of the European Conference on Computer Vision (ECCV)},
 	year = {2024},
 }

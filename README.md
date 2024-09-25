@@ -101,7 +101,7 @@ When using the algorithm, please cite:
 
 If you use it for fundamental matrix estimation, please cite:
 ```
-@inproceedings{StereoGlue2024,
+@inproceedings{Hruby2024,
 	author = {Hruby, Petr and Pollefeys, Marc and Barath, Daniel},
 	title = {Semicalibrated Relative Pose from an Affine Correspondence and Monodepth},
 	booktitle = {Proceedings of the European Conference on Computer Vision (ECCV)},

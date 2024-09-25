@@ -16,14 +16,21 @@ Install StereoGlue by running
 ```
 pip install .
 ```
-# Requirements
+
+## Requirements
 
 - Eigen 3.0 or higher
 - CMake 2.8.12 or higher
 - OpenCV 3.0 or higher
 - A modern compiler with C++17 support
 
-## Evaluation - Essential Matrix Estimation
+# Evaluation
+
+## Jupyter Notebook examples
+
+The example for essential matrix fitting with gravity-based solver is available at: [notebook](examples/example_essential_matrix_fitting_gravity.ipynb).
+
+## Essential Matrix Estimation
 To test StereoGlue and other baselines on essential matrix estimation, set up the datasets as described below. 
 To run the baselines, use:
 ```

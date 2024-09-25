@@ -16,6 +16,12 @@ Install StereoGlue by running
 ```
 pip install .
 ```
+# Requirements
+
+- Eigen 3.0 or higher
+- CMake 2.8.12 or higher
+- OpenCV 3.0 or higher
+- A modern compiler with C++17 support
 
 ## Evaluation - Essential Matrix Estimation
 To test StereoGlue and other baselines on essential matrix estimation, set up the datasets as described below. 
@@ -57,3 +63,36 @@ Download the [CAB scene of the LaMAR dataset](https://cvg-data.inf.ethz.ch/lamar
 
 ## Evaluation on the KITTI dataset
 Download the [KITTI odometry dataset](https://www.cvlibs.net/datasets/kitti/eval_odometry.php) (grayscale images and poses), and unzip them to your favourite location.
+
+# Acknowledgements
+
+When using the algorithm, please cite:
+```
+@inproceedings{StereoGlue2024,
+	author = {Barath, Daniel and Mishkin, Dmytro and Cavalli, Luca and Sarlin, Paul-Edouard and Hruby, Petr and Pollefeys, Marc},
+	title = {StereoGlue: Robust Estimation with Single-Point Solvers},
+	booktitle = {Proceedings of the European Conference on Computer Vision (ECCV)},
+	year = {2024},
+}
+```
+
+If you use it for fundamental matrix estimation, please cite:
+```
+@inproceedings{StereoGlue2024,
+	author = {Hruby, Petr and Pollefeys, Marc and Barath, Daniel},
+	title = {Semicalibrated Relative Pose from an Affine Correspondence and Monodepth},
+	booktitle = {Proceedings of the European Conference on Computer Vision (ECCV)},
+	year = {2024},
+}
+```
+
+If you use it with MAGSAC++ scoring, please cite:
+```
+@inproceedings{barath2020magsac++,
+  title={MAGSAC++, a fast, reliable and accurate robust estimator},
+  author={Barath, Daniel and Noskova, Jana and Ivashechkin, Maksym and Matas, Jiri},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages={1304--1312},
+  year={2020}
+}
+```

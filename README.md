@@ -47,7 +47,9 @@ plot-results-essential-matrix.ipynb
 
 ## Benchmarking results
 
-![results_E_eth3d](assets/results_eth3d.png) ![results_E_phototourism](assets/results_eth3d.png) ![results_E_lamar](assets/results_eth3d.png)
+![results_E_eth3d](assets/results_eth3d.png){: style="height:83px"}
+![results_E_phototourism](assets/results_eth3d.png){: style="height:83px"}
+![results_E_lamar](assets/results_eth3d.png){: style="height:83px"}
 
 ## Evaluation on the PhotoTourism dataset
 Download the data from the CVPR tutorial "RANSAC in 2020":

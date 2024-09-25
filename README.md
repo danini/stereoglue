@@ -10,6 +10,8 @@ git clone https://github.com/danini/stereoglue.git
 Make sure that you have the necessary libraries installed:
 ```
 sudo apt-get install libopencv-dev libopencv-contrib-dev libarpack++2-dev libarpack2-dev libsuperlu-dev libeigen3-dev libboost-all-dev pybind11
+pip install kornia
+pip install kornia-moons
 ```
 
 Install StereoGlue by running

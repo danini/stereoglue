@@ -35,31 +35,15 @@
 
 #include "scoring/types.h"
 #include "samplers/types.h"
-#include "neighborhood/types.h"
 #include "local_optimization/types.h"
 #include "termination/types.h"
-#include "inlier_selectors/types.h"
 
 namespace stereoglue {
-    struct ARSamplerSettings
-    {
-        double estimatorVariance = 0.9765;
-        double randomness = 0.01;
-    };
 
     struct LocalOptimizationSettings
     {
         size_t maxIterations = 50,
-            graphCutNumber = 20,
             sampleSizeMultiplier = 7;
-        double spatialCoherenceWeight = 0.1;
-    };
-
-    struct NeighborhoodSettings
-    {
-        double neighborhoodSize = 20.0,
-            neighborhoodGridDensity = 4.0;
-        size_t nearestNeighborNumber = 6;
     };
 
     struct RANSACSettings 
@@ -76,9 +60,6 @@ namespace stereoglue {
         samplers::SamplerType sampler = 
             samplers::SamplerType::Uniform; // Sampler type
             
-        neighborhood::NeighborhoodType neighborhood = 
-            neighborhood::NeighborhoodType::Grid; // Neighborhood type
-            
         local_optimization::LocalOptimizationType localOptimization = 
             local_optimization::LocalOptimizationType::NestedRANSAC; // Local optimization type
 
@@ -88,13 +69,8 @@ namespace stereoglue {
         termination::TerminationType terminationCriterion = 
             termination::TerminationType::RANSAC; // Termination criterion type
 
-        inlier_selector::InlierSelectorType inlierSelector = 
-            inlier_selector::InlierSelectorType::None; // Inlier selector type
-
-        ARSamplerSettings arSamplerSettings;
         LocalOptimizationSettings localOptimizationSettings,
             finalOptimizationSettings;
-        NeighborhoodSettings neighborhoodSettings;
     };
 
 }

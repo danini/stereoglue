@@ -4,6 +4,7 @@
 
 #include "estimators/solver_homography_four_point.h"
 #include "estimators/solver_homography_one_affine_gravity.h"
+#include "estimators/solver_homography_one_affine_approximate.h"
 #include "estimators/estimator_homography.h"
 
 #include "estimators/solver_essential_matrix_five_point_nister.h"
@@ -22,66 +23,10 @@
 #include "scoring/types.h"
 #include "local_optimization/types.h"
 #include "termination/types.h"
-#include "neighborhood/types.h"
-#include "inlier_selectors/types.h"
 #include "utils/types.h"
 #include "utils/utils_point_correspondence.h"
 
 #include "correspondence_factory.h"
-
-// Function to initialize the neighborhood graph
-template <size_t _DimensionNumber>
-void initializeNeighborhood(
-    const DataMatrix& kCorrespondences_, // The point correspondences
-    std::unique_ptr<stereoglue::neighborhood::AbstractNeighborhoodGraph> &neighborhoodGraph_, // The neighborhood graph
-    const stereoglue::neighborhood::NeighborhoodType kNeighborhoodType_, // The type of the neighborhood
-    const std::vector<double>& kImageSizes_, // Image sizes (height source, width source, height destination, width destination)
-    const stereoglue::RANSACSettings &kSettings_) // The RANSAC settings
-{
-    // Create the neighborhood graph
-    neighborhoodGraph_ = stereoglue::neighborhood::createNeighborhoodGraph<_DimensionNumber>(kNeighborhoodType_);
-    // Initialize the neighborhood graph if the neighborhood is grid
-    if (kNeighborhoodType_ == stereoglue::neighborhood::NeighborhoodType::Grid) 
-    {
-        // Check if the image sizes have the correct number of elements
-        if (kImageSizes_.size() != _DimensionNumber)
-            throw std::invalid_argument("The image sizes must have " + std::to_string(_DimensionNumber) + " elements.");
-
-        // Cast the neighborhood graph to the grid neighborhood graph
-        auto gridNeighborhoodGraph = 
-            dynamic_cast<stereoglue::neighborhood::GridNeighborhoodGraph<_DimensionNumber> *>(neighborhoodGraph_.get());
-        // Initialize the neighborhood graph
-        const auto &kCellNumber = kSettings_.neighborhoodSettings.neighborhoodGridDensity;
-        std::vector<double> kCellSizes(_DimensionNumber);
-        for (size_t i = 0; i < _DimensionNumber; i++)
-        {
-            kCellSizes[i] = kImageSizes_[i] / kCellNumber;
-            if (kCellSizes[i] < 1.0)
-                throw std::invalid_argument("The cell size is too small (< 1px). Try setting a smaller neighborhood size (in grid it acts as the number of cells along an axis).");
-        }
-
-        gridNeighborhoodGraph->setCellSizes(
-            kCellSizes, // The sizes of the cells in each dimension
-            kCellNumber); // The number of cells in each dimension
-    } else if (kNeighborhoodType_ == stereoglue::neighborhood::NeighborhoodType::FLANN_KNN)
-    {
-        // Cast the neighborhood graph to the FLANN neighborhood graph
-        auto flannNeighborhoodGraph = 
-            dynamic_cast<stereoglue::neighborhood::FlannNeighborhoodGraph<_DimensionNumber, 0> *>(neighborhoodGraph_.get());
-        // Initialize the neighborhood graph
-        flannNeighborhoodGraph->setNearestNeighborNumber(kSettings_.neighborhoodSettings.nearestNeighborNumber); 
-
-    } else if (kNeighborhoodType_ == stereoglue::neighborhood::NeighborhoodType::FLANN_Radius)
-    {
-        // Cast the neighborhood graph to the FLANN neighborhood graph
-        auto flannNeighborhoodGraph = 
-            dynamic_cast<stereoglue::neighborhood::FlannNeighborhoodGraph<_DimensionNumber, 1> *>(neighborhoodGraph_.get());
-        // Initialize the neighborhood graph
-        flannNeighborhoodGraph->setRadius(kSettings_.neighborhoodSettings.neighborhoodSize); 
-
-    }
-    neighborhoodGraph_->initialize(&kCorrespondences_);
-}
 
 void initializeLocalOptimizer(
     std::unique_ptr<stereoglue::local_optimization::LocalOptimizer> &localOptimizer_,
@@ -374,9 +319,9 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
     const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
     const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
+    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     const Eigen::Matrix3d &kGravitySource_, // The gravity alignment matrix of the source camera
     const Eigen::Matrix3d &kGravityDestination_, // The gravity alignment matrix of the destination camera
-    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     stereoglue::RANSACSettings &settings_) // The RANSAC settings
 {
     // Check if the input matrix has the correct dimensions
@@ -408,7 +353,6 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     // Get the values from the settings
     const stereoglue::scoring::ScoringType kScoring = settings_.scoring;
     const stereoglue::samplers::SamplerType kSampler = settings_.sampler;
-    const stereoglue::neighborhood::NeighborhoodType kNeighborhood = settings_.neighborhood;
     const stereoglue::local_optimization::LocalOptimizationType kLocalOptimization = settings_.localOptimization;
     const stereoglue::local_optimization::LocalOptimizationType kFinalOptimization = settings_.finalOptimization;
     const stereoglue::termination::TerminationType kTerminationCriterion = settings_.terminationCriterion;
@@ -523,17 +467,14 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
         stereoglue.getIterationNumber());
 }
 
-
 // Declaration of the external function
-std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateHomographyGravity(
+std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateHomographySimple(
     const Eigen::MatrixXd& kLafsSrc_, // The local affine frames in the source image
     const Eigen::MatrixXd& kLafsDst_, // The local affine frames in the destination image
     const Eigen::MatrixXd& kMatches_, // The match pool for each point in the source image
     const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
     const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
     const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
-    const Eigen::Matrix3d &kGravitySource_, // The gravity alignment matrix of the source camera
-    const Eigen::Matrix3d &kGravityDestination_, // The gravity alignment matrix of the destination camera
     const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     stereoglue::RANSACSettings &settings_) // The RANSAC settings
 {
@@ -566,14 +507,158 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     // Get the values from the settings
     const stereoglue::scoring::ScoringType kScoring = settings_.scoring;
     const stereoglue::samplers::SamplerType kSampler = settings_.sampler;
-    const stereoglue::neighborhood::NeighborhoodType kNeighborhood = settings_.neighborhood;
     const stereoglue::local_optimization::LocalOptimizationType kLocalOptimization = settings_.localOptimization;
     const stereoglue::local_optimization::LocalOptimizationType kFinalOptimization = settings_.finalOptimization;
     const stereoglue::termination::TerminationType kTerminationCriterion = settings_.terminationCriterion;
 
     // Create the solvers and the estimator
-    std::unique_ptr<stereoglue::estimator::EssentialMatrixEstimator> estimator = 
-        std::unique_ptr<stereoglue::estimator::EssentialMatrixEstimator>(new stereoglue::estimator::HomographyEstimator());
+    std::unique_ptr<stereoglue::estimator::HomographyEstimator> estimator = 
+        std::unique_ptr<stereoglue::estimator::HomographyEstimator>(new stereoglue::estimator::HomographyEstimator());
+    estimator->setMinimalSolver(new stereoglue::estimator::solver::HomographyOneAffineApproximateSolver());
+    estimator->setNonMinimalSolver(new stereoglue::estimator::solver::HomographyFourPointSolver());
+
+    // Create the scoring object
+    std::unique_ptr<stereoglue::scoring::AbstractScoring> scorer = 
+        stereoglue::scoring::createScoring<4>(kScoring);
+    scorer->setThreshold(settings_.inlierThreshold); // Set the threshold
+
+    // Set the image sizes if the scoring is ACRANSAC
+    if (kScoring == stereoglue::scoring::ScoringType::MAGSAC) // Initialize the scoring object if the scoring is MAGSAC
+        dynamic_cast<stereoglue::scoring::MAGSACScoring *>(scorer.get())->initialize(estimator.get());
+
+    // Create termination criterion object
+    std::unique_ptr<stereoglue::termination::AbstractCriterion> terminationCriterion = 
+        stereoglue::termination::createTerminationCriterion(kTerminationCriterion);
+
+    if (kTerminationCriterion == stereoglue::termination::TerminationType::RANSAC)
+        dynamic_cast<stereoglue::termination::RANSACCriterion *>(terminationCriterion.get())->setConfidence(settings_.confidence);
+
+    // Create the correspondence factory that will compose correspondences from the matches
+    std::unique_ptr<stereoglue::AbstractCorrespondenceFactory> correspondenceFactory = 
+        std::make_unique<stereoglue::AffineCorrespondenceFactory>();
+
+    // Create the RANSAC object
+    stereoglue::StereoGlue stereoglue;
+    stereoglue.setEstimator(estimator.get()); // Set the estimator
+    stereoglue.setScoring(scorer.get()); // Set the scoring method
+    stereoglue.setTerminationCriterion(terminationCriterion.get()); // Set the termination criterion
+    stereoglue.setCorrespondenceFactory(correspondenceFactory.get()); // Set the correspondence factory
+
+    // Set the local optimization object
+    std::unique_ptr<stereoglue::local_optimization::LocalOptimizer> localOptimizer;
+    if (kLocalOptimization != stereoglue::local_optimization::LocalOptimizationType::None)
+    {
+        // Create the local optimizer
+        localOptimizer = 
+            stereoglue::local_optimization::createLocalOptimizer(kLocalOptimization);
+
+        // Initialize the local optimizer
+        initializeLocalOptimizer(
+            localOptimizer,
+            kLocalOptimization,
+            kImageSizes_,
+            settings_,
+            settings_.localOptimizationSettings,
+            stereoglue::models::Types::EssentialMatrix);
+            
+        // Set the local optimizer
+        stereoglue.setLocalOptimizer(localOptimizer.get());
+    }
+
+    // Set the final optimization object
+    std::unique_ptr<stereoglue::local_optimization::LocalOptimizer> finalOptimizer;
+    if (kFinalOptimization != stereoglue::local_optimization::LocalOptimizationType::None)
+    {
+        // Create the final optimizer
+        finalOptimizer = 
+            stereoglue::local_optimization::createLocalOptimizer(kFinalOptimization);
+
+        // Initialize the local optimizer
+        initializeLocalOptimizer(
+            finalOptimizer,
+            kFinalOptimization,
+            kImageSizes_,
+            settings_,
+            settings_.finalOptimizationSettings,
+            stereoglue::models::Types::EssentialMatrix);
+            
+        // Set the final optimizer
+        stereoglue.setFinalOptimizer(finalOptimizer.get());
+    }
+
+    // Set the settings
+    stereoglue.setSettings(settings_);
+    
+    // Run the robust estimator
+    stereoglue.run(normalizedLafsSrc,
+        normalizedLafsDst,
+        kMatches_,
+        kMatchScores_);
+
+    // Check if the model is valid
+    if (stereoglue.getInliers().size() < estimator->sampleSize())
+        return std::make_tuple(Eigen::Matrix3d::Identity(), std::vector<std::pair<size_t, size_t>>(), 0.0, stereoglue.getIterationNumber());
+
+    // Get the normalized homography
+    Eigen::Matrix3d homography = stereoglue.getBestModel().getData();
+
+    // Return the best model with the inliers and the score
+    return std::make_tuple(homography, 
+        stereoglue.getInliers(), 
+        stereoglue.getBestScore().getValue(), 
+        stereoglue.getIterationNumber());
+    return std::make_tuple(Eigen::Matrix3d::Identity(), std::vector<std::pair<size_t, size_t>>(), 0.0, 0);
+}
+
+// Declaration of the external function
+std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateHomographyGravity(
+    const Eigen::MatrixXd& kLafsSrc_, // The local affine frames in the source image
+    const Eigen::MatrixXd& kLafsDst_, // The local affine frames in the destination image
+    const Eigen::MatrixXd& kMatches_, // The match pool for each point in the source image
+    const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
+    const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
+    const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
+    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
+    const Eigen::Matrix3d &kGravitySource_, // The gravity alignment matrix of the source camera
+    const Eigen::Matrix3d &kGravityDestination_, // The gravity alignment matrix of the destination camera
+    stereoglue::RANSACSettings &settings_) // The RANSAC settings
+{
+    // Check if the input matrix has the correct dimensions
+    if (kMatches_.rows() < 4) 
+        throw std::invalid_argument("The input matrix must have at least 4 rows to estimate the homography accurately.");
+    if (kImageSizes_.size() != 4) 
+        throw std::invalid_argument("The image sizes must have 4 elements (height source, width source, height destination, width destination).");
+    if (kMatches_.rows() != kMatchScores_.rows())
+        throw std::invalid_argument("The probabilities must have the same number of elements as the number of LAFs.");
+
+    // Normalize the point correspondences
+    DataMatrix normalizedLafsSrc, normalizedLafsDst;
+    Eigen::Matrix3d normalizingTransformSource, normalizingTransformDestination;
+    
+    normalizeLAFsByIntrinsics(
+        kLafsSrc_,
+        kIntrinsicsSource_,
+        normalizedLafsSrc);
+
+    normalizeLAFsByIntrinsics(
+        kLafsDst_,
+        kIntrinsicsDestination_,
+        normalizedLafsDst);
+
+    const double kScale = 
+        0.25 * (kIntrinsicsSource_(0, 0) + kIntrinsicsSource_(1, 1) + kIntrinsicsDestination_(0, 0) + kIntrinsicsDestination_(1, 1));
+    settings_.inlierThreshold /= kScale;
+
+    // Get the values from the settings
+    const stereoglue::scoring::ScoringType kScoring = settings_.scoring;
+    const stereoglue::samplers::SamplerType kSampler = settings_.sampler;
+    const stereoglue::local_optimization::LocalOptimizationType kLocalOptimization = settings_.localOptimization;
+    const stereoglue::local_optimization::LocalOptimizationType kFinalOptimization = settings_.finalOptimization;
+    const stereoglue::termination::TerminationType kTerminationCriterion = settings_.terminationCriterion;
+
+    // Create the solvers and the estimator
+    std::unique_ptr<stereoglue::estimator::HomographyEstimator> estimator = 
+        std::unique_ptr<stereoglue::estimator::HomographyEstimator>(new stereoglue::estimator::HomographyEstimator());
     estimator->setMinimalSolver(new stereoglue::estimator::solver::HomographyOneAffineGravitySolver());
     estimator->setNonMinimalSolver(new stereoglue::estimator::solver::HomographyFourPointSolver());
 
@@ -672,4 +757,5 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
         stereoglue.getInliers(), 
         stereoglue.getBestScore().getValue(), 
         stereoglue.getIterationNumber());
+    return std::make_tuple(Eigen::Matrix3d::Identity(), std::vector<std::pair<size_t, size_t>>(), 0.0, 0);
 }

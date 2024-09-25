@@ -9,7 +9,6 @@
 #include "scoring/types.h"
 #include "termination/types.h"
 #include "local_optimization/types.h"
-#include "inlier_selectors/types.h"
 #include "utils/types.h"
 #include "settings.h"
 
@@ -23,8 +22,18 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
     const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
     const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
+    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     const Eigen::Matrix3d &kGravitySource_, // The gravity alignment matrix of the source camera
     const Eigen::Matrix3d &kGravityDestination_, // The gravity alignment matrix of the destination camera
+    stereoglue::RANSACSettings &settings_); // The RANSAC settings
+    
+std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateHomographySimple(
+    const Eigen::MatrixXd& kLafsSrc_, // The local affine frames in the source image
+    const Eigen::MatrixXd& kLafsDst_, // The local affine frames in the destination image
+    const Eigen::MatrixXd& kMatches_, // The match pool for each point in the source image
+    const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
+    const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
+    const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
     const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     stereoglue::RANSACSettings &settings_); // The RANSAC settings
     
@@ -41,9 +50,9 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
     const Eigen::Matrix3d &kIntrinsicsSource_, // The intrinsic matrix of the source camera
     const Eigen::Matrix3d &kIntrinsicsDestination_, // The intrinsic matrix of the destination camera
+    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     const Eigen::Matrix3d &kGravitySource_, // The gravity alignment matrix of the source camera
     const Eigen::Matrix3d &kGravityDestination_, // The gravity alignment matrix of the destination camera
-    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     stereoglue::RANSACSettings &settings_); // The RANSAC settings
 
 PYBIND11_MODULE(pystereoglue, m) {
@@ -89,7 +98,6 @@ PYBIND11_MODULE(pystereoglue, m) {
         .def_readwrite("scoring", &stereoglue::RANSACSettings::scoring)
         .def_readwrite("sampler", &stereoglue::RANSACSettings::sampler)
         .def_readwrite("core_number", &stereoglue::RANSACSettings::coreNumber)
-        .def_readwrite("inlier_selector", &stereoglue::RANSACSettings::inlierSelector)
         .def_readwrite("local_optimization", &stereoglue::RANSACSettings::localOptimization)
         .def_readwrite("final_optimization", &stereoglue::RANSACSettings::finalOptimization)
         .def_readwrite("termination_criterion", &stereoglue::RANSACSettings::terminationCriterion)
@@ -97,7 +105,7 @@ PYBIND11_MODULE(pystereoglue, m) {
         .def_readwrite("final_optimization_settings", &stereoglue::RANSACSettings::finalOptimizationSettings);
         
     // Expose the function to Python
-    m.def("estimateHomography", &estimateHomographyGravity, "A function that performs homography estimation from point correspondences.",
+    m.def("estimateHomographyGravity", &estimateHomographyGravity, "A function that performs homography estimation from point correspondences.",
         py::arg("lafs1"),
         py::arg("lafs2"),
         py::arg("matches"),
@@ -107,6 +115,16 @@ PYBIND11_MODULE(pystereoglue, m) {
         py::arg("image_sizes"),
         py::arg("gravity_src") = Eigen::Matrix3d::Identity(),
         py::arg("gravity_dst") = Eigen::Matrix3d::Identity(),
+        py::arg("config") = stereoglue::RANSACSettings());
+        
+    m.def("estimateHomographySimple", &estimateHomographySimple, "A function that performs homography estimation from point correspondences.",
+        py::arg("lafs1"),
+        py::arg("lafs2"),
+        py::arg("matches"),
+        py::arg("scores"),
+        py::arg("intrinsics_src"),
+        py::arg("intrinsics_dst"),
+        py::arg("image_sizes"),
         py::arg("config") = stereoglue::RANSACSettings());
         
     // Expose the function to Python

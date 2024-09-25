@@ -28,6 +28,7 @@ void StereoGlue::run(
     bool isModelUpdated,
         immediateTermination = false;
     const size_t kStrickIterationLimit = settings.maxIterations;
+    maxIterations = settings.maxIterations;
 
     bestScore = scoring::Score(); // The best score
     std::vector<scoring::Score> bestScores(settings.coreNumber);
@@ -44,7 +45,9 @@ void StereoGlue::run(
         size_t toIdx = (coreIdx < settings.coreNumber - 1) ?
             (coreIdx + 1) * kMatches_.rows() / settings.coreNumber :
             kMatches_.rows(); // The ending index
-        
+
+        size_t iterationNumber = 0; // The number of iterations
+
         auto &tmpInliers = tmpInlierSets[coreIdx]; // The temporary inliers
         tmpInliers.reserve(kDataSrc_.rows()); // Reserve memory for the temporary inliers
 
@@ -74,11 +77,14 @@ void StereoGlue::run(
                 if (kMatches_(srcIdx, poolIdx) < 0)
                     continue;
 
+                std::cout << 1 << std::endl;
+
+                // Increase the iteration number
+                ++iterationNumber;
+
                 // Get the destination index
                 size_t dstIdx =
                     static_cast<size_t>(kMatches_(srcIdx, poolIdx));
-
-                //std::cout << "Index: " << srcIdx << " " << dstIdx << std::endl;
 
                 // Create the correspondence
                 correspondenceFactory->create(
@@ -88,6 +94,7 @@ void StereoGlue::run(
                     dstIdx, // The destination index
                     correspondence); // The correspondence
 
+                std::cout << 2 << std::endl;
                 // Estimate the model from the current correspondence
                 currentModels.clear(); // Clearing the current mode
                 if (!estimator->estimateModel(correspondence, // The current correspondence
@@ -96,6 +103,7 @@ void StereoGlue::run(
                 {
                     continue;
                 }
+                std::cout << 3 << std::endl;
 
                 // Iterate through the models
                 bool isModelUpdated = false;
@@ -125,6 +133,7 @@ void StereoGlue::run(
                         isModelUpdated = true;
                     }
                 }
+                std::cout << 4 << std::endl;
                 
                 if (isModelUpdated)
                 {
@@ -152,38 +161,23 @@ void StereoGlue::run(
                             bestScore = currentScore;
                             bestModel = locallyOptimizedModel;
                             inliers.swap(tmpInliers);
-                        } else 
-                        {
-                            /*std::cout << "LO (no update)" << std::endl;
-                            std::cout << "Current score: " << currentScore.getValue() << std::endl;
-                            std::cout << "Inlier number: " << tmpInliers.size() << std::endl << std::endl;*/
-                        }
+                        } 
                     }
-
-                    // Update the termination criterion
-                    terminationCriterion->check(
-                        kDataSrc_, // Data matrix
-                        bestScore, // The score of the best model
-                        1, // The sample size
-                        maxIterations, // The iteration number
-                        immediateTermination); // Immediate termination flag
-
-                    if (immediateTermination)
-                        break;
-
-                    // Update the maximum number of iterations
-                    if (maxIterations > kStrickIterationLimit)
-                        maxIterations = kStrickIterationLimit;
-
-                    //if (iterations > MAX(minIterations, maxIterations))
-                    //    break;
                 }
+                std::cout << 5 << std::endl;
+
+                if (iterationNumber >= maxIterations / settings.coreNumber)
+                    break;
             }
+
+            if (iterationNumber >= maxIterations / settings.coreNumber)
+                break;
         }
 
         // Clean up
         delete[] currentSample;
     }
+    std::cout << 6 << std::endl;
 
     // Select the best model from the cores
     for (size_t coreIdx = 0; coreIdx < settings.coreNumber; ++coreIdx)
@@ -385,24 +379,6 @@ const termination::AbstractCriterion *StereoGlue::getTerminationCriterion() cons
 termination::AbstractCriterion *StereoGlue::getMutableTerminationCriterion()
 {
     return terminationCriterion;
-}
-
-// Create the space partitioning inlier selector object
-void StereoGlue::setInlierSelector(inlier_selector::AbstractInlierSelector *inlierSelector_)
-{
-    inlierSelector = inlierSelector_;
-}
-
-// Return a constant pointer to the space partitioning inlier selector object
-const inlier_selector::AbstractInlierSelector *StereoGlue::getInlierSelector() const
-{
-    return inlierSelector;
-}
-
-// Return a mutable pointer to the space partitioning inlier selector object
-inlier_selector::AbstractInlierSelector *StereoGlue::getMutableInlierSelector()
-{
-    return inlierSelector;
 }
 
 // Set the scoring object

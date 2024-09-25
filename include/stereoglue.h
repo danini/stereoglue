@@ -57,15 +57,6 @@ class StereoGlue
             const DataMatrix &kMatches_,
             const DataMatrix &kMatchScores_);
 
-        // Create the space partitioning inlier selector object
-        void setInlierSelector(inlier_selector::AbstractInlierSelector *inlierSelector_);
-
-        // Return a constant pointer to the space partitioning inlier selector object
-        const inlier_selector::AbstractInlierSelector *getInlierSelector() const;
-
-        // Return a mutable pointer to the space partitioning inlier selector object
-        inlier_selector::AbstractInlierSelector *getMutableInlierSelector();
-
         // Set the scoring object
         void setCorrespondenceFactory(AbstractCorrespondenceFactory *correspondenceFactory_);
 
@@ -166,9 +157,6 @@ class StereoGlue
 
         // The termination criterion object
         termination::AbstractCriterion *terminationCriterion;
-
-        // The space partitioning inlier selector object
-        inlier_selector::AbstractInlierSelector *inlierSelector;
 
         // The correspondence factory
         AbstractCorrespondenceFactory *correspondenceFactory;

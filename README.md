@@ -49,8 +49,14 @@ plot-results-essential-matrix.ipynb
 
 <p align="center">
   <img src="assets/results_eth3d.png" alt="results_E_eth3d" width="30%" />
-  <img src="assets/results_eth3d.png" alt="results_E_phototourism" width="30%" />
-  <img src="assets/results_eth3d.png" alt="results_E_lamar" width="30%" />
+  <img src="assets/results_phototourism.png" alt="results_E_phototourism" width="30%" />
+  <img src="assets/results_lamar.png" alt="results_E_lamar" width="30%" />
+</p>
+
+<p align="center">
+  <img src="assets/results_sevenscenes.png" alt="results_E_7scenes" width="30%" />
+  <img src="assets/results_scannet.png" alt="results_E_scannet" width="30%" />
+  <img src="assets/results_kitti.png" alt="results_E_kitti" width="30%" />
 </p>
 
 ## Evaluation on the PhotoTourism dataset

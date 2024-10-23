@@ -50,18 +50,18 @@ namespace stereoglue
 		namespace solver
 		{
 			// This is the estimator class for estimating a homography matrix between two images. A model estimation method and error calculation method are implemented
-			class FundamentalMatrixBundleAdjustmentSolver : public AbstractSolver
+			class FocalFundamentalMatrixBundleAdjustmentSolver : public AbstractSolver
 			{
 			protected:
 				poselib::BundleOptions options;
 
 			public:
-				FundamentalMatrixBundleAdjustmentSolver(poselib::BundleOptions kOptions_ = poselib::BundleOptions())
+				FocalFundamentalMatrixBundleAdjustmentSolver(poselib::BundleOptions kOptions_ = poselib::BundleOptions())
 					: options(kOptions_)
 				{
 				}
 
-				~FundamentalMatrixBundleAdjustmentSolver()
+				~FocalFundamentalMatrixBundleAdjustmentSolver()
 				{
 				}
 
@@ -99,7 +99,7 @@ namespace stereoglue
 					const double *kWeights_ = nullptr) const override; // The weight for each point
 			};
 
-			FORCE_INLINE bool FundamentalMatrixBundleAdjustmentSolver::estimateModel(
+			FORCE_INLINE bool FocalFundamentalMatrixBundleAdjustmentSolver::estimateModel(
 				const DataMatrix& kData_, // The set of data points
 				const size_t *kSample_, // The sample used for the estimation
 				const size_t kSampleNumber_, // The size of the sample
@@ -204,6 +204,8 @@ namespace stereoglue
 
 					// Update the model
 					model.getMutableData().block<3, 3>(0, 0) = fundamentalMatrix;
+					model.getMutableData()(0, 3) = 1.0;
+					model.getMutableData()(1, 3) = 1.0;
 				}
 
 				return true;

@@ -38,6 +38,91 @@
 #include <cmath>
 #include "types.h"
 
+void normalizeLAFs(
+    const DataMatrix &kLafs_,
+    Eigen::Matrix3d &normalizingTransform_,
+    DataMatrix &normalizedLafs_,
+    const size_t kSampleNumber_ = 0,
+    const size_t *kSample_ = nullptr)
+{
+    // Get the number of correspondences
+    const int &rows =  
+        kSample_ == nullptr ? kLafs_.rows() : kSampleNumber_;
+
+    // Get the number of columns
+    const int &cols = kLafs_.cols();
+
+    if (cols < 2)
+        throw std::runtime_error("The number of columns in the input correspondences should be at least 4.");
+    if (rows < 3)
+        throw std::runtime_error("The number of rows in the input correspondences should be at least 3.");
+
+    // Resize the normalized correspondences matrix
+    normalizedLafs_.resize(rows, cols);
+
+    double massPoint[2]; // Mass point
+
+    // Initializing the mass point coordinates
+    massPoint[0] = massPoint[1] = 0.0;
+
+    // Calculating the mass points in both images
+    for (size_t i = 0; i < rows; ++i)
+    {
+        // Get index of the current point
+        const size_t &idx = kSample_ == nullptr ? i : kSample_[i];
+
+        // Add the coordinates to that of the mass points
+        massPoint[0] += kLafs_(idx, 0);
+        massPoint[1] += kLafs_(idx, 1);
+    }
+
+    // Get the average
+    massPoint[0] /= rows;
+    massPoint[1] /= rows;
+
+    // Get the mean distance from the mass points
+    double averageDistance = 0.0;
+    for (size_t i = 0; i < rows; ++i)
+    {
+        // Get index of the current point
+        const size_t &idx = kSample_ == nullptr ? i : kSample_[i];
+
+        const double &x = kLafs_(idx, 0);
+        const double &y = kLafs_(idx, 1);
+
+        const double dx = massPoint[0] - x;
+        const double dy = massPoint[1] - y;
+
+        averageDistance += sqrt(dx * dx + dy * dy);
+    }
+
+    averageDistance /= rows;
+
+    // Calculate the sqrt(2) / MeanDistance ratios
+    double ratio = M_SQRT2 / averageDistance;
+
+    // Compute the normalized coordinates
+    for (size_t i = 0; i < rows; ++i)
+    {
+        // Get index of the current point
+        const size_t &idx = kSample_ == nullptr ? i : kSample_[i];
+
+        const double &x = kLafs_(idx, 0);
+        const double &y = kLafs_(idx, 1);
+
+        normalizedLafs_(i, 0) = (x - massPoint[0]) * ratio;
+        normalizedLafs_(i, 1) = (y - massPoint[1]) * ratio;
+
+        for (size_t i = 2; i < cols; ++i)
+            normalizedLafs_(idx, i) = normalizedLafs_(idx, i);
+    }
+
+    // Creating the normalizing transformations
+    normalizingTransform_ << ratio, 0, -ratio * massPoint[0],
+        0, ratio, -ratio * massPoint[1],
+        0, 0, 1;
+}
+
 void normalizeLAFsByIntrinsics(
     const DataMatrix &kLafs_,
     const Eigen::Matrix3d &kIntrinsics_,

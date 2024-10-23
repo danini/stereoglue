@@ -61,6 +61,7 @@ BundleStats lm_impl(Problem &problem, Param *parameters, const BundleOptions &op
     stats.step_norm = -1;
     stats.invalid_steps = 0;
     stats.lambda = opt.initial_lambda;
+    size_t successful_iterations = 1;
 
     bool recompute_jac = true;
     for (stats.iterations = 0; stats.iterations < opt.max_iterations; ++stats.iterations) {
@@ -68,7 +69,7 @@ BundleStats lm_impl(Problem &problem, Param *parameters, const BundleOptions &op
         if (recompute_jac) {
             JtJ.setZero();
             Jtr.setZero();
-            problem.accumulate(*parameters, JtJ, Jtr);
+            problem.accumulate(*parameters, JtJ, Jtr, successful_iterations++);
             stats.grad_norm = Jtr.norm();
             if (stats.grad_norm < opt.gradient_tol) {
                 break;

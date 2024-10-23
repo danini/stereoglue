@@ -145,16 +145,20 @@ namespace stereoglue
 				} else
 				{ 
 					// The correspondences for the estimation based on the inliers
+					//std::vector<double> weights;
+					//weights.reserve(kMatches_.rows() * kMatches_.cols());
 					Eigen::MatrixXd correspondences(kMatches_.rows() * kMatches_.cols(), 4);
 					for (size_t i = 0; i < kMatches_.rows(); ++i)
 						for (size_t j = 0; j < kMatches_.cols(); ++j)
 							if (kMatches_(i, j) != -1)
+							{
 								correspondences.row(i * kMatches_.cols() + j) <<
 									kDataSrc_(i, 0),
 									kDataSrc_(i, 1),
 									kDataDst_(kMatches_(i, j), 0),
 									kDataDst_(kMatches_(i, j), 1);
-							else
+								//weights.push_back(kMatchScores_(i, j));
+							} else
 								break;
 
 					if (!kEstimator_->estimateModelNonminimal(
@@ -163,6 +167,7 @@ namespace stereoglue
 						correspondences.rows(),
 						&estimatedModels,
 						nullptr))
+						//&weights[0]))
 					{
 						estimatedScore_ = kInvalidScore;
 						return;

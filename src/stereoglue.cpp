@@ -65,7 +65,7 @@ void StereoGlue::run(
         std::vector<models::Model> currentModels; // The current models estimated from the current sample
         scoring::Score currentScore; // The score of the current model
         models::Model locallyOptimizedModel; // The locally optimized model
-        Eigen::MatrixXd correspondence(1, 8); // The correspondence to be created in every iteration    
+        Eigen::MatrixXd correspondence(1, correspondenceFactory->dimensions()); // The correspondence to be created in every iteration    
 
         // Iterate through the matches
         for (size_t srcIdx = fromIdx; srcIdx < toIdx; ++srcIdx)
@@ -76,8 +76,6 @@ void StereoGlue::run(
                 // Check if the match is valid
                 if (kMatches_(srcIdx, poolIdx) < 0)
                     continue;
-
-                std::cout << 1 << std::endl;
 
                 // Increase the iteration number
                 ++iterationNumber;
@@ -94,7 +92,6 @@ void StereoGlue::run(
                     dstIdx, // The destination index
                     correspondence); // The correspondence
 
-                std::cout << 2 << std::endl;
                 // Estimate the model from the current correspondence
                 currentModels.clear(); // Clearing the current mode
                 if (!estimator->estimateModel(correspondence, // The current correspondence
@@ -103,7 +100,6 @@ void StereoGlue::run(
                 {
                     continue;
                 }
-                std::cout << 3 << std::endl;
 
                 // Iterate through the models
                 bool isModelUpdated = false;
@@ -133,7 +129,6 @@ void StereoGlue::run(
                         isModelUpdated = true;
                     }
                 }
-                std::cout << 4 << std::endl;
                 
                 if (isModelUpdated)
                 {
@@ -164,7 +159,6 @@ void StereoGlue::run(
                         } 
                     }
                 }
-                std::cout << 5 << std::endl;
 
                 if (iterationNumber >= maxIterations / settings.coreNumber)
                     break;
@@ -177,7 +171,6 @@ void StereoGlue::run(
         // Clean up
         delete[] currentSample;
     }
-    std::cout << 6 << std::endl;
 
     // Select the best model from the cores
     for (size_t coreIdx = 0; coreIdx < settings.coreNumber; ++coreIdx)
@@ -189,9 +182,6 @@ void StereoGlue::run(
             inliers.swap(bestInliers[coreIdx]);
         }
     }
-
-    //std::cout << "Best score: " << bestScore.getValue() << std::endl;
-    //std::cout << "Inlier number: " << inliers.size() << std::endl << std::endl;
 
     // Perform final optimization if needed
     if (finalOptimizer != nullptr && inliers.size() > 1)
@@ -213,10 +203,6 @@ void StereoGlue::run(
             locallyOptimizedModel, // The locally optimized model
             currentScore, // The score of the current model
             tmpInlierSets[0]); // The inliers of the estimated model
-
-        /*std::cout << "FO " << std::endl;
-        std::cout << "Current score: " << currentScore.getValue() << std::endl;
-        std::cout << "Inlier number: " << tmpInlierSets[0].size() << std::endl << std::endl;*/
 
         // Update the best model
         if (currentScore.getValue() > bestScore.getValue())

@@ -38,9 +38,11 @@ std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size
     stereoglue::RANSACSettings &settings_); // The RANSAC settings
     
 std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateFundamentalMatrix(
-    const DataMatrix& kCorrespondences_, // The point correspondences
-    const std::vector<double>& kPointProbabilities_, // The probabilities of the points being inliers
-    const std::vector<double>& kImageSizes_, // Image sizes (height source, width source, height destination, width destination)
+    const Eigen::MatrixXd& kLafsSrc_, // The local affine frames in the source image
+    const Eigen::MatrixXd& kLafsDst_, // The local affine frames in the destination image
+    const Eigen::MatrixXd& kMatches_, // The match pool for each point in the source image
+    const Eigen::MatrixXd& kMatchScores_, // The match scores for each point in the source image
+    const std::vector<double>& kImageSizes_, // Image sizes (width source, height source, width destination, height destination)
     stereoglue::RANSACSettings &settings_); // The RANSAC settings
 
 std::tuple<Eigen::Matrix3d, std::vector<std::pair<size_t, size_t>>, double, size_t> estimateEssentialMatrixGravity(
@@ -129,9 +131,11 @@ PYBIND11_MODULE(pystereoglue, m) {
         
     // Expose the function to Python
     m.def("estimateFundamentalMatrix", &estimateFundamentalMatrix, "A function that performs fundamental matrix estimation from point correspondences.",
-        py::arg("correspondences"),
+        py::arg("lafs1"),
+        py::arg("lafs2"),
+        py::arg("matches"),
+        py::arg("scores"),
         py::arg("image_sizes"),
-        py::arg("probabilities") = std::vector<double>(),
         py::arg("config") = stereoglue::RANSACSettings());
         
     // Expose the function to Python

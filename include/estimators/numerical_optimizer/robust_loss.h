@@ -36,15 +36,16 @@ class TrivialLoss {
   public:
     TrivialLoss(double) {} // dummy to ensure we have consistent calling interface
     TrivialLoss() {}
-    double loss(double r2) const { return r2; }
-    double weight(double r2) const { return 1.0; }
+    double loss(double r2, double decay = 1.0) const { return r2; }
+    double weight(double r2, double decay = 1.0) const { return 1.0; }
 };
 
 class TruncatedLoss {
   public:
     TruncatedLoss(double threshold) : squared_thr(threshold * threshold) {}
-    double loss(double r2) const { return std::min(r2, squared_thr); }
-    double weight(double r2) const { return (r2 < squared_thr) ? 1.0 : 0.0; }
+    double loss(double r2, double decay = 1.0) const { return std::min(r2, squared_thr * decay); }
+    // double weight(double r2, double decay = 1.0) const { return (r2 < squared_thr * decay) ? 1.0 : 0.0; }
+    double weight(double r2, double decay = 1.0) const { return std::max(0.0, 1.0 - r2 / (squared_thr * decay)); }
 
   private:
     const double squared_thr;
@@ -56,8 +57,8 @@ class TruncatedLoss {
 class TruncatedLossLeZach {
   public:
     TruncatedLossLeZach(double threshold) : squared_thr(threshold * threshold), mu(0.5) {}
-    double loss(double r2) const { return std::min(r2, squared_thr); }
-    double weight(double r2) const {
+    double loss(double r2, double decay = 1.0) const { return std::min(r2, squared_thr); }
+    double weight(double r2, double decay = 1.0) const {
         double r2_hat = r2 / squared_thr;
         double zstar = std::min(r2_hat, 1.0);
 
@@ -94,14 +95,13 @@ class MAGSACPlusPlusLoss {
     {
       magsac_scoring.setThreshold(threshold);
       magsac_scoring.initialize(degrees_of_freedom);
-
     }
-    double loss(double r2) const 
+    double loss(double r2, double decay = 1.0) const 
     { 
       return magsac_scoring.getLoss(r2);
     }
 
-    double weight(double r2) const {
+    double weight(double r2, double decay = 1.0) const {
       return magsac_scoring.getWeight(r2);
     }
 };
@@ -109,7 +109,7 @@ class MAGSACPlusPlusLoss {
 class HuberLoss {
   public:
     HuberLoss(double threshold) : thr(threshold) {}
-    double loss(double r2) const {
+    double loss(double r2, double decay = 1.0) const {
         const double r = std::sqrt(r2);
         if (r <= thr) {
             return r2;
@@ -117,7 +117,7 @@ class HuberLoss {
             return thr * (2.0 * r - thr);
         }
     }
-    double weight(double r2) const {
+    double weight(double r2, double decay = 1.0) const {
         const double r = std::sqrt(r2);
         if (r <= thr) {
             return 1.0;
@@ -132,8 +132,8 @@ class HuberLoss {
 class CauchyLoss {
   public:
     CauchyLoss(double threshold) : inv_sq_thr(1.0 / (threshold * threshold)) {}
-    double loss(double r2) const { return std::log1p(r2 * inv_sq_thr); }
-    double weight(double r2) const {
+    double loss(double r2, double decay = 1.0) const { return std::log1p(r2 * inv_sq_thr); }
+    double weight(double r2, double decay = 1.0) const {
         return std::max(std::numeric_limits<double>::min(), inv_sq_thr / (1.0 + r2 * inv_sq_thr));
     }
 

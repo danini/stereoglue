@@ -147,24 +147,24 @@ void motion_from_essential(const Eigen::Matrix3d &E, const std::vector<Eigen::Ve
     poselib::CameraPose pose;
     pose.q = rotmat_to_quat(UW * Vt);
     pose.t = UW.col(2);
-    if (check_cheirality(pose, x1, x2)) {
+    //if (check_cheirality(pose, x1, x2)) {
         relative_poses->emplace_back(pose);
-    }
+    //}
     pose.t = -pose.t;
-    if (check_cheirality(pose, x1, x2)) {
+    //if (check_cheirality(pose, x1, x2)) {
         relative_poses->emplace_back(pose);
-    }
+    //}
 
     // U * W.transpose()
     UW.block<3, 2>(0, 0) = -UW.block<3, 2>(0, 0);
     pose.q = rotmat_to_quat(UW * Vt);
-    if (check_cheirality(pose, x1, x2)) {
+    //if (check_cheirality(pose, x1, x2)) {
         relative_poses->emplace_back(pose);
-    }
+    //}
     pose.t = -pose.t;
-    if (check_cheirality(pose, x1, x2)) {
+    //if (check_cheirality(pose, x1, x2)) {
         relative_poses->emplace_back(pose);
-    }
+    //}
 }
 
 void motion_from_essential_planar(double e01, double e21, double e10, double e12,

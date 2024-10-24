@@ -62,7 +62,7 @@ class SuperPointWithAffNetScaleNetKornia(nn.Module):
         lafs = self.affnet(lafs, x.mean(dim=1, keepdim=True))
         lafs = self.orinet(lafs, x.mean(dim=1, keepdim=True))
         desc_hardnet = self.descriptor(x.mean(dim=1, keepdim=True), lafs)
-        return lafs.detach().numpy(), resp.detach().numpy(), desc_sp.detach().numpy(), desc_hardnet[0].detach().numpy()
+        return lafs.cpu().detach().numpy(), resp.cpu().detach().numpy(), desc_sp.cpu().detach().numpy(), desc_hardnet[0].cpu().detach().numpy()
 
 def normalize_keypoints(keypoints, K):
     '''Normalize keypoints using the calibration data.'''

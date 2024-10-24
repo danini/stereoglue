@@ -38,6 +38,7 @@ pip install .
 ## Jupyter Notebook examples
 
 The example for essential matrix fitting with gravity-based solver is available at: [notebook](examples/example_essential_matrix_fitting_gravity.ipynb).
+
 The example for fundamental matrix fitting with monodepth-based solver is available at: [notebook](examples/example_fundamental_matrix_fitting.ipynb).
 
 # Acknowledgements

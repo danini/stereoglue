@@ -1,5 +1,7 @@
 # StereoGlue
 
+More examples and fitting problems are coming soon!
+
 ## Installation
 
 Clone the repository and its submodules:

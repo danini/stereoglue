@@ -107,27 +107,27 @@ PYBIND11_MODULE(pystereoglue, m) {
         .def_readwrite("final_optimization_settings", &stereoglue::RANSACSettings::finalOptimizationSettings);
         
     // Expose the function to Python
-    m.def("estimateHomographyGravity", &estimateHomographyGravity, "A function that performs homography estimation from point correspondences.",
-        py::arg("lafs1"),
-        py::arg("lafs2"),
-        py::arg("matches"),
-        py::arg("scores"),
-        py::arg("intrinsics_src"),
-        py::arg("intrinsics_dst"),
-        py::arg("image_sizes"),
-        py::arg("gravity_src") = Eigen::Matrix3d::Identity(),
-        py::arg("gravity_dst") = Eigen::Matrix3d::Identity(),
-        py::arg("config") = stereoglue::RANSACSettings());
+//    m.def("estimateHomographyGravity", &estimateHomographyGravity, "A function that performs homography estimation from point correspondences.",
+//        py::arg("lafs1"),
+//        py::arg("lafs2"),
+//        py::arg("matches"),
+//        py::arg("scores"),
+//        py::arg("intrinsics_src"),
+//        py::arg("intrinsics_dst"),
+//        py::arg("image_sizes"),
+//        py::arg("gravity_src") = Eigen::Matrix3d::Identity(),
+//        py::arg("gravity_dst") = Eigen::Matrix3d::Identity(),
+//        py::arg("config") = stereoglue::RANSACSettings());
         
-    m.def("estimateHomographySimple", &estimateHomographySimple, "A function that performs homography estimation from point correspondences.",
-        py::arg("lafs1"),
-        py::arg("lafs2"),
-        py::arg("matches"),
-        py::arg("scores"),
-        py::arg("intrinsics_src"),
-        py::arg("intrinsics_dst"),
-        py::arg("image_sizes"),
-        py::arg("config") = stereoglue::RANSACSettings());
+//    m.def("estimateHomographySimple", &estimateHomographySimple, "A function that performs homography estimation from point correspondences.",
+//        py::arg("lafs1"),
+//        py::arg("lafs2"),
+//        py::arg("matches"),
+//        py::arg("scores"),
+//        py::arg("intrinsics_src"),
+//        py::arg("intrinsics_dst"),
+//        py::arg("image_sizes"),
+//        py::arg("config") = stereoglue::RANSACSettings());
         
     // Expose the function to Python
     m.def("estimateFundamentalMatrix", &estimateFundamentalMatrix, "A function that performs fundamental matrix estimation from point correspondences.",

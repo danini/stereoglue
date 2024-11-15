@@ -21,6 +21,7 @@ class SuperPointWithAffNetScaleNetKornia(nn.Module):
         self.init_scale = float(init_scale)
         self.xy_net = SuperPoint(max_num_keypoints=2048).eval()  # load the extractor
         self.descriptor = KF.LAFDescriptor(KF.HardNet(True)).eval()
+        # Download model from https://github.com/bluedream1121/self-sca-ori/tree/main/trained_models
         trained_model_name ='_0621_092607_resnet18_ori36_sca13_branchsca-best_model.pt'
         
         ## hyperparameters

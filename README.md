@@ -43,6 +43,8 @@ The example for essential matrix fitting with gravity-based solver is available 
 
 The example for fundamental matrix fitting with monodepth-based solver is available at: [notebook](examples/example_fundamental_matrix_fitting.ipynb).
 
+The weights for the affine correspondence estimation can be downloaded from [link](https://github.com/bluedream1121/self-sca-ori/tree/main/trained_models). 
+
 # Acknowledgements
 
 When using the algorithm, please cite:

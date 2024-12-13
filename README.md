@@ -45,6 +45,8 @@ The example for fundamental matrix fitting with monodepth-based solver is availa
 
 The weights for the affine correspondence estimation can be downloaded from [link](https://github.com/bluedream1121/self-sca-ori/tree/main/trained_models). 
 
+The model for feature orientation and scale estimation can be downloaded from [link](https://polybox.ethz.ch/index.php/s/BZSC37iIS1jF4A6).
+
 # Acknowledgements
 
 When using the algorithm, please cite:
